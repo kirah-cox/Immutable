@@ -68,6 +68,68 @@ public class ImmutableStackTests
     }
 }
 
+public class MyImmutableDeque
+{
+    private MyImmutableStack front;
+    private MyImmutableStack back;
+    public int Count { get; private init; }
+
+    public MyImmutableDeque() : this(new MyImmutableStack(), new MyImmutableStack()) {
+
+    }
+
+    public MyImmutableDeque(MyImmutableStack newFront, MyImmutableStack newBack)
+    {
+        front = newFront;
+        back = newBack;
+        Count = newFront.Count + newBack.Count;
+    }
+
+    public bool IsEmpty()
+    {
+        return Count == 0;
+    }
+
+    private MyImmutableDeque Rebalanced()
+    {
+        // TODO: fix this
+        return new MyImmutableDeque();
+    }
+
+    public MyImmutableDeque PushFront(int value)
+    {
+        return new MyImmutableDeque(front.Push(value), back);
+    }
+
+    public MyImmutableDeque PopFront()
+    {
+        // possibly rebalance
+
+        return new MyImmutableDeque(front.Pop(), back);
+    }
+
+    public int Front()
+    {
+        return front.Top();
+    }
+
+    public MyImmutableDeque PushBack(int value)
+    {
+        return new MyImmutableDeque(front, back.Push(value));
+    }
+
+    public MyImmutableDeque PopBack()
+    {
+        return new MyImmutableDeque(back.Pop(), back);
+    }
+    
+    public int Back()
+    {
+        // possibly rebalance
+        return back.Top();
+    }
+}
+
 public class MyImmutableStack
 {
     public class Node(int value, MyImmutableStack rest)
@@ -85,13 +147,16 @@ public class MyImmutableStack
 
     private MyImmutableStack(int topValue, MyImmutableStack rest)
     {
-        head = new Node (topValue, rest);
+        head = new Node(topValue, rest);
+        Count = rest.Count + 1;
     }
 
     public bool IsEmpty()
     {
         return head is null;
     }
+
+    public int Count { get; private init; } = 0;
 
     public MyImmutableStack Push(int value)
     {
