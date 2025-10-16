@@ -143,6 +143,7 @@ public class ImmutableStackTests
     {
         var sut = new MyImmutableDeque();
         sut = sut.PushFront(10);
+        sut = sut.PushBack(5);
         sut = sut.PushFront(5);
         sut = sut.PopFront();
         Assert.Equal(10, sut.Front());
@@ -153,6 +154,7 @@ public class ImmutableStackTests
     {
         var sut = new MyImmutableDeque();
         sut = sut.PushBack(10);
+        sut = sut.PushFront(5);
         sut = sut.PushBack(5);
         sut = sut.PopBack();
         Assert.Equal(10, sut.Back());
@@ -166,8 +168,9 @@ public class ImmutableStackTests
         sut = sut.PushBack(5);
         sut = sut.PushBack(7);
         sut = sut.PushBack(3);
-        sut = sut.Rebalance();
-        Assert.Equal(3, sut.Back());
+        sut = sut.PushBack(2);
+        sut.Rebalance();
+        Assert.Equal(2, sut.Back());
         Assert.Equal(10, sut.Front());
     }
 
@@ -179,9 +182,10 @@ public class ImmutableStackTests
         sut = sut.PushFront(5);
         sut = sut.PushFront(7);
         sut = sut.PushFront(3);
-        sut = sut.Rebalance();
-        Assert.Equal(10, sut.Front());
-        Assert.Equal(3, sut.Back());
+        sut = sut.PushFront(2);
+        sut.Rebalance();
+        Assert.Equal(2, sut.Front());
+        Assert.Equal(10, sut.Back());
     }
 }
 
@@ -207,12 +211,15 @@ public class MyImmutableDeque
         return Count == 0;
     }
 
-    public MyImmutableDeque Rebalance()
+    public void Rebalance()
     {
         var tempStack = new MyImmutableStack();
         var backwardTemp = new MyImmutableStack();
         bool topNotNull = true;
-        int tempStackLength = 0;
+        int backStackLength = back.Count;
+        int frontStackLength = front.Count;
+
+        
 
         if (front.Count < 1 && back.Count > 1)
         {
@@ -221,8 +228,7 @@ public class MyImmutableDeque
                 try
                 {
                     tempStack = tempStack.Push(back.Top());
-                    back.Pop();
-                    tempStackLength++;
+                    back = back.Pop();
                 }
                 catch
                 {
@@ -230,22 +236,45 @@ public class MyImmutableDeque
                 }
             }
 
-            for (int i = 0; i <= (tempStackLength / 2); i++)
+            if ((backStackLength % 2) == 0)
             {
-                backwardTemp = backwardTemp.Push(tempStack.Top());
-                tempStack.Pop();
-            }
+                for (int i = 1; i <= (backStackLength / 2); i++)
+                {
+                    backwardTemp = backwardTemp.Push(tempStack.Top());
+                    tempStack = tempStack.Pop();
+                }
 
-            for (int i = 0; i <= (tempStackLength / 2); i++)
-            {
-                front = front.Push(backwardTemp.Top());
-                backwardTemp.Top();
-            }
+                for (int i = 1; i <= (backStackLength / 2); i++)
+                {
+                    front = front.Push(backwardTemp.Top());
+                    backwardTemp = backwardTemp.Pop();
+                }
 
-            for (int i = 0; i <= (tempStackLength / 2); i++)
+                for (int i = 1; i <= (backStackLength / 2); i++)
+                {
+                    back = back.Push(tempStack.Top());
+                    tempStack = tempStack.Pop();
+                }
+            }
+            else
             {
-                back = back.Push(tempStack.Top());
-                tempStack.Pop();
+                for (int i = 1; i <= (backStackLength / 2); i++)
+                {
+                    backwardTemp = backwardTemp.Push(tempStack.Top());
+                    tempStack = tempStack.Pop();
+                }
+
+                for (int i = 1; i <= (backStackLength / 2); i++)
+                {
+                    front = front.Push(backwardTemp.Top());
+                    backwardTemp = backwardTemp.Pop();
+                }
+
+                for (int i = 1; i <= (backStackLength / 2) + 1; i++)
+                {
+                    back = back.Push(tempStack.Top());
+                    tempStack = tempStack.Pop();
+                }
             }
         }
         else if(back.Count < 1 && front.Count > 1)
@@ -255,8 +284,7 @@ public class MyImmutableDeque
                 try
                 {
                     tempStack = tempStack.Push(front.Top());
-                    front.Pop();
-                    tempStackLength++;
+                    front = front.Pop();
                 }
                 catch
                 {
@@ -264,25 +292,47 @@ public class MyImmutableDeque
                 }
             }
 
-            for (int i = 0; i <= (tempStackLength / 2); i++)
+            if ((frontStackLength % 2) == 0)
             {
-                backwardTemp = backwardTemp.Push(tempStack.Top());
-                tempStack.Pop();
-            }
+                for (int i = 1; i <= (frontStackLength / 2); i++)
+                {
+                    backwardTemp = backwardTemp.Push(tempStack.Top());
+                    tempStack = tempStack.Pop();
+                }
 
-            for (int i = 0; i <= (tempStackLength / 2); i++)
-            {
-                back = back.Push(backwardTemp.Top());
-                backwardTemp.Top();
-            }
+                for (int i = 1; i <= (frontStackLength / 2); i++)
+                {
+                    back = back.Push(backwardTemp.Top());
+                    backwardTemp = backwardTemp.Pop();
+                }
 
-            for (int i = 0; i <= (tempStackLength / 2); i++)
+                for (int i = 1; i <= (frontStackLength / 2); i++)
+                {
+                    front = front.Push(tempStack.Top());
+                    tempStack = tempStack.Pop();
+                }
+            }
+            else
             {
-                front = front.Push(tempStack.Top());
-                tempStack.Pop();
+                for (int i = 1; i <= (frontStackLength / 2); i++)
+                {
+                    backwardTemp = backwardTemp.Push(tempStack.Top());
+                    tempStack = tempStack.Pop();
+                }
+
+                for (int i = 1; i <= (frontStackLength / 2); i++)
+                {
+                    back = back.Push(backwardTemp.Top());
+                    backwardTemp = backwardTemp.Pop();
+                }
+
+                for (int i = 1; i <= (frontStackLength / 2) + 1; i++)
+                {
+                    front = front.Push(tempStack.Top());
+                    tempStack = tempStack.Pop();
+                }
             }
         }
-        return new MyImmutableDeque();
     }
 
     public MyImmutableDeque PushFront(int value)
