@@ -26,14 +26,14 @@ public class ImmutableStackTests
         Assert.Throws<Exception>(() => sut.Top());
     }
 
-    // [Fact]
-    // public void Calling_top_on_an_empty_list_throws_an_exception()
-    // {
-    //     var sut = new MyImmutableStack();
-    //     sut.Push(10);
-    //     sut.Pop();
-    //     Assert.Throws<Exception>(() => sut.Top());
-    // }
+    [Fact]
+    public void Calling_top_on_an_empty_list_throws_an_exception()
+    {
+        var sut = new MyImmutableStack();
+        sut = sut.Push(10);
+        sut = sut.Pop();
+        Assert.Throws<Exception>(() => sut.Top());
+    }
 
     [Fact]
     public void After_a_push_the_pushed_value_is_on_top()
@@ -66,6 +66,123 @@ public class ImmutableStackTests
         Assert.Equal(10, afterPop.Top());
         Assert.True(Object.ReferenceEquals(with10, afterPop));
     }
+
+    [Fact]
+    public void A_new_deque_is_empty()
+    {
+        var sut = new MyImmutableDeque();
+        Assert.True(sut.IsEmpty());
+    }
+
+    [Fact]
+    public void A_deque_after_a_push_to_front_is_not_empty()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushFront(10);
+        Assert.False(sut.IsEmpty());
+    }
+
+    [Fact]
+    public void A_deque_after_a_push_to_back_is_not_empty()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushBack(10);
+        Assert.False(sut.IsEmpty());
+    }
+
+    [Fact]
+    public void After_a_push_to_front_the_pushed_value_is_on_top()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushFront(10);
+        Assert.Equal(10, sut.Front());
+    }
+
+    [Fact]
+    public void After_a_push_to_back_the_pushed_value_is_at_back()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushBack(10);
+        Assert.Equal(10, sut.Back());
+    }
+
+    [Fact]
+    public void Calling_front_on_an_new_list_throws_an_exception()
+    {
+        var sut = new MyImmutableDeque();
+        Assert.Throws<Exception>(() => sut.Front());
+    }
+
+    [Fact]
+    public void Calling_front_on_an_empty_list_throws_an_exception()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushFront(10);
+        sut = sut.PopFront();
+        Assert.Throws<Exception>(() => sut.Front());
+    }
+
+    [Fact]
+    public void Calling_back_on_an_new_list_throws_an_exception()
+    {
+        var sut = new MyImmutableDeque();
+        Assert.Throws<Exception>(() => sut.Back());
+    }
+
+    [Fact]
+    public void Calling_back_on_an_empty_list_throws_an_exception()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushBack(10);
+        sut = sut.PopBack();
+        Assert.Throws<Exception>(() => sut.Back());
+    }
+
+    [Fact]
+    public void After_two_pushes_and_a_pop_on_the_front_the_first_value_is_on_top()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushFront(10);
+        sut = sut.PushFront(5);
+        sut = sut.PopFront();
+        Assert.Equal(10, sut.Front());
+    }
+
+    [Fact]
+    public void After_two_pushes_and_a_pop_on_the_back_the_first_value_is_at_the_back()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushBack(10);
+        sut = sut.PushBack(5);
+        sut = sut.PopBack();
+        Assert.Equal(10, sut.Back());
+    }
+
+    [Fact]
+    public void Rebalance_works_on_back()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushBack(10);
+        sut = sut.PushBack(5);
+        sut = sut.PushBack(7);
+        sut = sut.PushBack(3);
+        sut = sut.Rebalance();
+        Assert.Equal(3, sut.Back());
+        Assert.Equal(10, sut.Front());
+    }
+
+    [Fact]
+    public void Rebalance_works_on_front()
+    {
+        var sut = new MyImmutableDeque();
+        sut = sut.PushFront(10);
+        sut = sut.PushFront(5);
+        sut = sut.PushFront(7);
+        sut = sut.PushFront(3);
+        sut = sut.Rebalance();
+        Assert.Equal(10, sut.Front());
+        Assert.Equal(3, sut.Back());
+    }
 }
 
 public class MyImmutableDeque
@@ -90,9 +207,81 @@ public class MyImmutableDeque
         return Count == 0;
     }
 
-    private MyImmutableDeque Rebalanced()
+    public MyImmutableDeque Rebalance()
     {
-        // TODO: fix this
+        var tempStack = new MyImmutableStack();
+        var backwardTemp = new MyImmutableStack();
+        bool topNotNull = true;
+        int tempStackLength = 0;
+
+        if (front.Count < 1 && back.Count > 1)
+        {
+            while (topNotNull)
+            {
+                try
+                {
+                    tempStack = tempStack.Push(back.Top());
+                    back.Pop();
+                    tempStackLength++;
+                }
+                catch
+                {
+                    topNotNull = false;
+                }
+            }
+
+            for (int i = 0; i <= (tempStackLength / 2); i++)
+            {
+                backwardTemp = backwardTemp.Push(tempStack.Top());
+                tempStack.Pop();
+            }
+
+            for (int i = 0; i <= (tempStackLength / 2); i++)
+            {
+                front = front.Push(backwardTemp.Top());
+                backwardTemp.Top();
+            }
+
+            for (int i = 0; i <= (tempStackLength / 2); i++)
+            {
+                back = back.Push(tempStack.Top());
+                tempStack.Pop();
+            }
+        }
+        else if(back.Count < 1 && front.Count > 1)
+        {
+            while (topNotNull)
+            {
+                try
+                {
+                    tempStack = tempStack.Push(front.Top());
+                    front.Pop();
+                    tempStackLength++;
+                }
+                catch
+                {
+                    topNotNull = false;
+                }
+            }
+
+            for (int i = 0; i <= (tempStackLength / 2); i++)
+            {
+                backwardTemp = backwardTemp.Push(tempStack.Top());
+                tempStack.Pop();
+            }
+
+            for (int i = 0; i <= (tempStackLength / 2); i++)
+            {
+                back = back.Push(backwardTemp.Top());
+                backwardTemp.Top();
+            }
+
+            for (int i = 0; i <= (tempStackLength / 2); i++)
+            {
+                front = front.Push(tempStack.Top());
+                tempStack.Pop();
+            }
+        }
         return new MyImmutableDeque();
     }
 
@@ -103,8 +292,7 @@ public class MyImmutableDeque
 
     public MyImmutableDeque PopFront()
     {
-        // possibly rebalance
-
+        Rebalance();
         return new MyImmutableDeque(front.Pop(), back);
     }
 
@@ -120,12 +308,12 @@ public class MyImmutableDeque
 
     public MyImmutableDeque PopBack()
     {
-        return new MyImmutableDeque(back.Pop(), back);
+        return new MyImmutableDeque(front, back.Pop());
     }
     
     public int Back()
     {
-        // possibly rebalance
+        Rebalance();
         return back.Top();
     }
 }
@@ -173,6 +361,5 @@ public class MyImmutableStack
     {
         if (head is null) throw new Exception("Cannot pop from an empty list.");
         return head.Rest;
-
     }
 }
